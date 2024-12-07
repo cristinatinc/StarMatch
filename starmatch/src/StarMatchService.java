@@ -1,3 +1,6 @@
+import exceptions.BusinessLogicException;
+import exceptions.EntityNotFoundException;
+import exceptions.ValidationException;
 import model.*;
 import repository.Repository;
 
@@ -64,6 +67,9 @@ public class StarMatchService {
      * Removes a user by ID from the user repository.
      */
     public void removeUser(Integer userId) {
+        if(!userRepository.getAll().contains(userId)) {
+            throw new EntityNotFoundException("User not found");
+        }
         userRepository.delete(userId);
     }
 
@@ -97,6 +103,8 @@ public class StarMatchService {
      * Creates a new quote and adds it to the quote repository.
      */
     public void createQuote(String newQuoteText, String element) {
+        if(newQuoteText==null)
+            throw new EntityNotFoundException("New quote text is null");
         Element quoteElement = null;
         for (Element e : Element.values()) {
             if (e.name().equalsIgnoreCase(element)) {
@@ -112,6 +120,9 @@ public class StarMatchService {
      * Removes a quote by ID from the quote repository.
      */
     public void removeQuote(Integer quoteId) {
+        if(!quoteRepository.getAll().contains(quoteId)) {
+            throw new EntityNotFoundException("Quote not found");
+        }
         quoteRepository.delete(quoteId);
     }
 
@@ -128,6 +139,9 @@ public class StarMatchService {
      * Creates a new trait and adds it to the trait repository.
      */
     public void createTrait(String traitName, Element element){
+        if(traitRepository.getAll().contains(traitName) || traitName==null || element==null) {
+            throw new ValidationException("Trait name or element is null or the trait already exists");
+        }
         Trait trait=new Trait(element,traitName,getMaxId(traitRepository)+1);
         traitRepository.create(trait);
     }
@@ -136,6 +150,9 @@ public class StarMatchService {
      * Removes a trait by ID from the trait repository.
      */
     public void removeTrait(Integer traitId){
+        if(!traitRepository.getAll().contains(traitId)) {
+            throw new EntityNotFoundException("Trait not found");
+        }
         traitRepository.delete(traitId);
     }
 
@@ -369,11 +386,11 @@ public class StarMatchService {
      */
     public void addFriend(User user, String friendEmail) {
         if(user.getEmail().equals(friendEmail))
-            throw new IllegalArgumentException("You cannot add yourself as your friend");
+            throw new BusinessLogicException("You cannot add yourself as your friend");
         User friend = userRepository.getAll().stream()
                 .filter(user1 -> user1.getEmail().equals(friendEmail))
                 .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("User with that email does not exist"));
+                .orElseThrow(() -> new EntityNotFoundException("User with that email does not exist"));
 
         if (!user.getRawFriendEmails().contains(friendEmail)) {
             user.getRawFriendEmails().add(friendEmail);
@@ -418,7 +435,7 @@ public class StarMatchService {
         User friend = userRepository.getAll().stream()
                 .filter(u -> u.getEmail().equals(friendEmail))
                 .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("User with that email does not exist"));
+                .orElseThrow(() -> new EntityNotFoundException("User with that email does not exist"));
 
         if (user.getRawFriendEmails().contains(friendEmail)) {
             user.getRawFriendEmails().remove(friendEmail);
@@ -441,7 +458,7 @@ public class StarMatchService {
     public Compatibility calculateCompatibility(User user, String friendEmail){
         User friend=userRepository.getAll().stream().filter(user1 -> user1.getEmail().equals(friendEmail)).findFirst().orElseThrow(() -> new NoSuchElementException("User with that email does not exist"));
         if(!user.getFriends().contains(friend) && !user.getRawFriendEmails().contains(friendEmail))
-            throw new NoSuchElementException("That User is not your friend");
+            throw new EntityNotFoundException("That User is not your friend");
 
         NatalChart chartUser=getNatalChart(user);
         NatalChart chartFriend=getNatalChart(friend);

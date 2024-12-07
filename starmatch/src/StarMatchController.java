@@ -1,3 +1,6 @@
+import exceptions.BusinessLogicException;
+import exceptions.EntityNotFoundException;
+import exceptions.ValidationException;
 import model.*;
 
 import java.time.LocalDate;
@@ -40,7 +43,7 @@ public class StarMatchController {
         if(starMatchService.validateEmail(email))
             starMatchService.createUser(name, birthDate, birthTime, birthPlace, email, password);
         else
-            throw new NoSuchElementException("Invalid email");
+            throw new EntityNotFoundException("Invalid email");
     }
 
     /**
@@ -51,7 +54,7 @@ public class StarMatchController {
             starMatchService.createAdmin(name, email, password);
             System.out.println("Admin added successfully!");}
         else
-            throw new NoSuchElementException("Invalid email");
+            throw new ValidationException("Invalid email");
     }
 
     /**
@@ -70,7 +73,7 @@ public class StarMatchController {
             starMatchService.updateAdmin(adminID, name, email, password);
             System.out.println("Admin updated successfully!");}
         else
-            throw new NoSuchElementException("Invalid email");
+            throw new ValidationException("Invalid email");
     }
 
     /**
@@ -95,16 +98,24 @@ public class StarMatchController {
      * Adds a new quote associated with a specified element.
      */
     public void addNewQuote(String newQuote, String element){
+        try{
         starMatchService.createQuote(newQuote, element);
-        System.out.println("Quote added successfully!");
+        System.out.println("Quote added successfully!");}
+        catch(EntityNotFoundException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     /**
      * Removes a quote by its ID.
      */
     public void removeQuote(Integer quoteID){
+        try{
         starMatchService.removeQuote(quoteID);
-        System.out.println("Quote removed successfully!");
+        System.out.println("Quote removed successfully!");}
+        catch(EntityNotFoundException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     /**
@@ -128,14 +139,22 @@ public class StarMatchController {
      * Adds a new traits.
      */
     public void addTrait(String traitName, Element element){
-        starMatchService.createTrait(traitName,element);
+        try{
+        starMatchService.createTrait(traitName,element);}
+        catch(ValidationException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     /**
      * Removes a trait by its ID.
      */
     public void removeTrait(Integer traitID){
-        starMatchService.removeTrait(traitID);
+        try{
+        starMatchService.removeTrait(traitID);}
+        catch(EntityNotFoundException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     /**
@@ -158,8 +177,12 @@ public class StarMatchController {
      * Removes a user by its ID.
      */
     public void removeUser(Integer userID){
+        try{
         starMatchService.removeUser(userID);
-        System.out.println("Removed user with ID " + userID);
+        System.out.println("Removed user with ID " + userID);}
+        catch(EntityNotFoundException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     /**
@@ -170,8 +193,7 @@ public class StarMatchController {
         if (user != null) {
             return starMatchService.getNatalChart(user);
         } else {
-            System.out.println("User not found."); //o sa fie o exceptie aici dar nu o pun acum
-            return null;
+            throw new EntityNotFoundException("User not found.");
         }
     }
 
@@ -208,7 +230,7 @@ public class StarMatchController {
         User user1=starMatchService.getUserByEmail(user.getEmail());
         starMatchService.updateUser(user1,name,email,password,birthDate,birthTime,birthPlace);}
         else
-            throw new NoSuchElementException("Invalid email");}
+            throw new EntityNotFoundException("Invalid email");}
         else {
             User user1=starMatchService.getUserByEmail(user.getEmail());
             starMatchService.updateUser(user1,name,email,password,birthDate,birthTime,birthPlace);
@@ -227,8 +249,12 @@ public class StarMatchController {
      * Adds a friend to the user's friend list by email.
      */
     public void addFriend(String userEmail, String friendEmail){
+        try{
         User user = starMatchService.getUserByEmail(userEmail);
-        starMatchService.addFriend(user,friendEmail);
+        starMatchService.addFriend(user,friendEmail);}
+        catch(EntityNotFoundException | BusinessLogicException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     /**
@@ -243,8 +269,14 @@ public class StarMatchController {
      * Removes a friend from the user's friend list.
      */
     public void removeFriend(String userEmail, String friendEmail){
-        User user = starMatchService.getUserByEmail(userEmail);
-        starMatchService.removeFriend(user,friendEmail);
+        try {
+            User user = starMatchService.getUserByEmail(userEmail);
+            starMatchService.removeFriend(user,friendEmail);
+        }
+        catch(EntityNotFoundException e){
+            System.out.println(e.getMessage());
+        }
+
     }
 
     /**
